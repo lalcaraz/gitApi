@@ -1,0 +1,61 @@
+<html>
+    <head>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.19.3/moment.min.js"></script>
+    </head>
+    <body>
+        <form id="frmSearchGithubUser" action="#" method="get">
+            Username: <input id="username" name="username" type="text" placeholder="type a username"> <input type="submit" value="Search">
+        </form>
+        <div id="gituserfound" style="display:none;">
+            The given user, <span id="gitusername"></span>, has <span id="publicrepos"></span> public repos. <br>
+            <div> &nbsp; </div>
+            <div id="publicrepolist" style="display:none;"> </div>
+        </div>
+        <script src="https://code.jquery.com/jquery-3.1.1.min.js"> </script>
+        <script type="text/javascript">
+            $(document).ready(function(){
+             if (jQuery) {
+                $('#frmSearchGithubUser').submit(function(event){
+                    event.preventDefault();
+                    var $form = $( this ),
+                        gitUser = $form.find( 'input[name="username"]' ).val();
+                        if (gitUser){
+                            $.ajax({
+                                type:'get',
+                                url:'https://api.github.com/users/'+gitUser+'/repos',
+                                success: function(githubRepos){ 
+                                    if (githubRepos.length){
+                                        $('#gituserfound').show();
+                                        $('#gitusername').html(gitUser);
+                                        $('#publicrepos').html(githubRepos.length);
+                                        if (githubRepos.length){
+                                            $('#publicrepolist').show();
+                                            $.each(githubRepos, function(index, repo){
+                                                $('#publicrepolist').append(
+                                                    '<a href="' + repo.html_url+ '">' + repo.name + '</a> ' + '<br>' +
+                                                    ( repo.description ? repo.description + '<br>' : '') +
+                                                    'Last update: ' + moment(repo.updated_at).format('MMM Mo, YYYY') + '<br>' +
+                                                    'It has ' + repo.forks + ' forks, ' + repo.watchers + ' watchers, and the default branch is ' + repo.default_branch + '<br> <br>')
+                                            });
+                                        }
+                                    }
+                                },
+                                error: function(error){
+                                    alert('The Github API returned an error:' + error.responseJSON.message);
+                                }
+                            })
+                        } else {
+                            $('#publicrepolist').html('');
+                            $('#gituserfound').hide();
+                            $('#gitusername').html('');
+                            $('#publicrepos').html('');
+                            alert('No user was found for ' + gitUser);
+                        }
+                });
+             } else {
+               alert('This website requires jQuery which was not loaded. Check your browser permissions and try again.')
+             }
+          });
+        </script>
+    </body>
+</html>
